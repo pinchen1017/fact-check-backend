@@ -237,13 +237,12 @@ def cofact_check(text: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# 添加多代理分析端點
+# 添加多代理分析端點 - GET 方法
 @app.get("/api/multi-agent-analysis")
-@app.post("/api/multi-agent-analysis")
-def multi_agent_analysis(analysis_data: dict = None):
-    """多代理分析端點 - 支持 GET 和 POST 方法"""
+def multi_agent_analysis_get():
+    """多代理分析端點 - GET 方法"""
     try:
-        logger.info("多代理分析請求")
+        logger.info("多代理分析請求 (GET)")
         
         # 模擬多代理分析結果
         response_data = {
@@ -270,10 +269,53 @@ def multi_agent_analysis(analysis_data: dict = None):
             "timestamp": "2024-01-01T00:00:00Z"
         }
         
-        logger.info("多代理分析完成")
+        logger.info("多代理分析完成 (GET)")
         return response_data
     except Exception as e:
-        logger.error(f"多代理分析錯誤: {str(e)}")
+        logger.error(f"多代理分析錯誤 (GET): {str(e)}")
+        error_response = {
+            "status": "error",
+            "error": str(e),
+            "message": "Multi-agent analysis failed"
+        }
+        raise HTTPException(status_code=500, detail=error_response)
+
+# 添加多代理分析端點 - POST 方法
+@app.post("/api/multi-agent-analysis")
+def multi_agent_analysis_post(analysis_data: dict = None):
+    """多代理分析端點 - POST 方法"""
+    try:
+        logger.info("多代理分析請求 (POST)")
+        
+        # 模擬多代理分析結果
+        response_data = {
+            "status": "ok",
+            "analysis_id": "analysis_123",
+            "result": {
+                "weight_calculation_json": {
+                    "weights": [0.3, 0.4, 0.3],
+                    "total_score": 0.75
+                },
+                "final_report_json": {
+                    "summary": "分析完成",
+                    "confidence": 0.8
+                },
+                "fact_check_result_json": {
+                    "credibility": 0.8,
+                    "source": "可信來源"
+                },
+                "classification_json": {
+                    "category": "新聞",
+                    "type": "真實"
+                }
+            },
+            "timestamp": "2024-01-01T00:00:00Z"
+        }
+        
+        logger.info("多代理分析完成 (POST)")
+        return response_data
+    except Exception as e:
+        logger.error(f"多代理分析錯誤 (POST): {str(e)}")
         error_response = {
             "status": "error",
             "error": str(e),
