@@ -62,6 +62,40 @@ def root():
 def health():
     return {"status": "ok"}
 
+@app.get("/api/db-test")
+def test_database():
+    """測試資料庫連接"""
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT 1 as test")
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+        return {
+            "status": "ok", 
+            "database": "connected",
+            "test_result": result[0],
+            "db_config": {
+                "host": DB_HOST,
+                "port": DB_PORT,
+                "database": DB_NAME,
+                "user": DB_USER
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "database": "connection_failed",
+            "error": str(e),
+            "db_config": {
+                "host": DB_HOST,
+                "port": DB_PORT,
+                "database": DB_NAME,
+                "user": DB_USER
+            }
+        }
+
 @app.post("/api/message")
 def receive_message(payload: MessageIn):
     try:
