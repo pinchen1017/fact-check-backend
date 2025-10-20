@@ -66,6 +66,15 @@ def health():
 def test_database():
     """測試資料庫連接"""
     try:
+        # 顯示環境變數狀態
+        env_status = {
+            "DB_HOST": DB_HOST,
+            "DB_PORT": DB_PORT,
+            "DB_NAME": DB_NAME,
+            "DB_USER": DB_USER,
+            "DB_PASS": "***" if DB_PASS else "NOT_SET"
+        }
+        
         conn = get_conn()
         cur = conn.cursor()
         cur.execute("SELECT 1 as test")
@@ -76,24 +85,23 @@ def test_database():
             "status": "ok", 
             "database": "connected",
             "test_result": result[0],
-            "db_config": {
-                "host": DB_HOST,
-                "port": DB_PORT,
-                "database": DB_NAME,
-                "user": DB_USER
-            }
+            "environment_variables": env_status,
+            "connection_info": f"Connected to {DB_HOST}:{DB_PORT}/{DB_NAME} as {DB_USER}"
         }
     except Exception as e:
         return {
             "status": "error",
             "database": "connection_failed",
             "error": str(e),
-            "db_config": {
-                "host": DB_HOST,
-                "port": DB_PORT,
-                "database": DB_NAME,
-                "user": DB_USER
-            }
+            "error_type": type(e).__name__,
+            "environment_variables": {
+                "DB_HOST": DB_HOST,
+                "DB_PORT": DB_PORT,
+                "DB_NAME": DB_NAME,
+                "DB_USER": DB_USER,
+                "DB_PASS": "***" if DB_PASS else "NOT_SET"
+            },
+            "connection_string": f"postgresql://{DB_USER}:***@{DB_HOST}:{DB_PORT}/{DB_NAME}"
         }
 
 @app.post("/api/message")
