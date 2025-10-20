@@ -139,22 +139,58 @@ def get_user_session(session_id: str):
     try:
         # 這裡可以根據 session_id 查詢用戶資料
         # 目前返回模擬資料
-        return {
+        response_data = {
             "status": "ok",
             "session_id": session_id,
             "user_data": {
                 "id": "user_123",
                 "name": "測試用戶",
                 "session_active": True
-            }
+            },
+            "timestamp": "2024-01-01T00:00:00Z"
         }
+        return response_data
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # 確保錯誤響應也是有效的 JSON
+        error_response = {
+            "status": "error",
+            "error": str(e),
+            "session_id": session_id
+        }
+        raise HTTPException(status_code=500, detail=error_response)
 
 @app.get("/local-api/get_user_by_session")
 def get_user_by_session_local():
     """本地 session 查詢端點"""
     return {"status": "ok", "message": "Local session endpoint"}
+
+# 添加 session 創建端點
+@app.post("/api-proxy/apps/judge/users/user/sessions")
+def create_user_session(session_data: dict = None):
+    """創建用戶 session"""
+    try:
+        import uuid
+        session_id = str(uuid.uuid4())
+        
+        response_data = {
+            "status": "ok",
+            "session_id": session_id,
+            "message": "Session created successfully",
+            "user_data": {
+                "id": "user_123",
+                "name": "測試用戶",
+                "session_active": True
+            },
+            "timestamp": "2024-01-01T00:00:00Z"
+        }
+        return response_data
+    except Exception as e:
+        error_response = {
+            "status": "error",
+            "error": str(e),
+            "message": "Failed to create session"
+        }
+        raise HTTPException(status_code=500, detail=error_response)
 
 # 添加 Cofact API 代理端點
 @app.get("/api/cofact/check")
@@ -174,3 +210,41 @@ def cofact_check(text: str):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# 添加多代理分析端點
+@app.post("/api/multi-agent-analysis")
+def multi_agent_analysis(analysis_data: dict = None):
+    """多代理分析端點"""
+    try:
+        # 模擬多代理分析結果
+        response_data = {
+            "status": "ok",
+            "analysis_id": "analysis_123",
+            "result": {
+                "weight_calculation_json": {
+                    "weights": [0.3, 0.4, 0.3],
+                    "total_score": 0.75
+                },
+                "final_report_json": {
+                    "summary": "分析完成",
+                    "confidence": 0.8
+                },
+                "fact_check_result_json": {
+                    "credibility": 0.8,
+                    "source": "可信來源"
+                },
+                "classification_json": {
+                    "category": "新聞",
+                    "type": "真實"
+                }
+            },
+            "timestamp": "2024-01-01T00:00:00Z"
+        }
+        return response_data
+    except Exception as e:
+        error_response = {
+            "status": "error",
+            "error": str(e),
+            "message": "Multi-agent analysis failed"
+        }
+        raise HTTPException(status_code=500, detail=error_response)
