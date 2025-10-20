@@ -2,9 +2,12 @@
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import logging
+import traceback
 
 # 資料庫配置 - 使用環境變數
 DB_HOST = os.getenv("DB_HOST", "35.221.147.151")
@@ -13,7 +16,15 @@ DB_NAME = os.getenv("DB_NAME", "linebot_v2")
 DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASS = os.getenv("DB_PASS", "@Aa123456")
 
-app = FastAPI()
+app = FastAPI(
+    title="Fact Check System API",
+    description="事實查核系統後端 API",
+    version="1.0.0"
+)
+
+# 設置日誌
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 ALLOWED_ORIGINS = [
     "https://fact-check-system-static.onrender.com",
@@ -28,6 +39,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 全局錯誤處理
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    logger.error(f"全局錯誤: {str(exc)}")
+    logger.error(f"錯誤追蹤: {traceback.format_exc()}")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "status": "error",
+            "message": "內部服務器錯誤",
+            "error": str(exc),
+            "timestamp": "2024-01-01T00:00:00Z"
+        }
+    )
 
 class MessageIn(BaseModel):
     user: str
@@ -212,10 +238,13 @@ def cofact_check(text: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 # 添加多代理分析端點
+@app.get("/api/multi-agent-analysis")
 @app.post("/api/multi-agent-analysis")
 def multi_agent_analysis(analysis_data: dict = None):
-    """多代理分析端點"""
+    """多代理分析端點 - 支持 GET 和 POST 方法"""
     try:
+        logger.info("多代理分析請求")
+        
         # 模擬多代理分析結果
         response_data = {
             "status": "ok",
@@ -240,8 +269,11 @@ def multi_agent_analysis(analysis_data: dict = None):
             },
             "timestamp": "2024-01-01T00:00:00Z"
         }
+        
+        logger.info("多代理分析完成")
         return response_data
     except Exception as e:
+        logger.error(f"多代理分析錯誤: {str(e)}")
         error_response = {
             "status": "error",
             "error": str(e),
