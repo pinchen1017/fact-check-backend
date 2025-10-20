@@ -54,6 +54,10 @@ def startup():
     cur.close()
     conn.close()
 
+@app.get("/")
+def root():
+    return {"message": "Fact Check System Backend API", "status": "running"}
+
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
@@ -83,5 +87,48 @@ def list_messages(limit: int = 20):
         cur.close()
         conn.close()
         return {"status":"ok", "messages": rows}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 添加 session 相關端點
+@app.get("/api-proxy/apps/judge/users/user/sessions/{session_id}")
+def get_user_session(session_id: str):
+    """獲取用戶 session 資料"""
+    try:
+        # 這裡可以根據 session_id 查詢用戶資料
+        # 目前返回模擬資料
+        return {
+            "status": "ok",
+            "session_id": session_id,
+            "user_data": {
+                "id": "user_123",
+                "name": "測試用戶",
+                "session_active": True
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/local-api/get_user_by_session")
+def get_user_by_session_local():
+    """本地 session 查詢端點"""
+    return {"status": "ok", "message": "Local session endpoint"}
+
+# 添加 Cofact API 代理端點
+@app.get("/api/cofact/check")
+def cofact_check(text: str):
+    """Cofact API 查詢端點"""
+    try:
+        # 這裡可以整合 Cofact API
+        # 目前返回模擬資料
+        return {
+            "status": "ok",
+            "text": text,
+            "result": {
+                "credibility": 0.8,
+                "source": "模擬資料",
+                "analysis": "這是模擬的 Cofact 分析結果"
+            }
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
