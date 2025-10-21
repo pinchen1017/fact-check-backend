@@ -220,8 +220,8 @@ def create_user_session(session_data: dict = None):
 
 # 添加 Cofact API 代理端點
 @app.get("/api/cofact/check")
-def cofact_check(text: str):
-    """Cofact API 查詢端點"""
+def cofact_check_get(text: str):
+    """Cofact API 查詢端點 (GET)"""
     try:
         # 這裡可以整合 Cofact API
         # 目前返回模擬資料
@@ -235,6 +235,40 @@ def cofact_check(text: str):
             }
         }
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/cofact/check")
+def cofact_check_post(request_data: dict = None):
+    """Cofact API 查詢端點 (POST)"""
+    try:
+        text = request_data.get("text", "") if request_data else ""
+        logger.info(f"Cofact API 查詢 (POST): {text}")
+        
+        # 這裡可以整合真實的 Cofact API
+        # 目前返回模擬資料
+        return {
+            "status": "ok",
+            "text": text,
+            "result": {
+                "credibility": 0.8,
+                "source": "模擬資料",
+                "analysis": "這是模擬的 Cofact 分析結果",
+                "similar_articles": [
+                    {
+                        "title": "相關文章1",
+                        "url": "https://example.com/article1",
+                        "similarity": 0.85
+                    },
+                    {
+                        "title": "相關文章2", 
+                        "url": "https://example.com/article2",
+                        "similarity": 0.72
+                    }
+                ]
+            }
+        }
+    except Exception as e:
+        logger.error(f"Cofact API 錯誤 (POST): {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # 添加多代理分析端點 - GET 方法
@@ -320,5 +354,54 @@ def multi_agent_analysis_post(analysis_data: dict = None):
             "status": "error",
             "error": str(e),
             "message": "Multi-agent analysis failed"
+        }
+        raise HTTPException(status_code=500, detail=error_response)
+
+@app.post("/api-proxy/run")
+def run_analysis(request_data: dict = None):
+    """執行多代理分析的主要端點"""
+    try:
+        logger.info("收到 /api-proxy/run 請求")
+        logger.info(f"請求數據: {request_data}")
+        
+        # 模擬多代理分析過程
+        analysis_result = {
+            "status": "success",
+            "message": "Analysis completed successfully",
+            "session_id": request_data.get("sessionId", "unknown") if request_data else "unknown",
+            "user_id": request_data.get("userId", "user_123") if request_data else "user_123",
+            "query": request_data.get("message", "測試查詢") if request_data else "測試查詢",
+            "analysis_data": {
+                "weight_calculation_json": {
+                    "llm_label": "部分正確",
+                    "slm_label": "需要更多資訊",
+                    "n8n_label": "待確認",
+                    "final_score": 0.6
+                },
+                "final_report_json": {
+                    "summary": "經過多代理分析，此訊息部分正確",
+                    "confidence": 0.6,
+                    "sources": ["來源1", "來源2"]
+                },
+                "fact_check_result_json": {
+                    "credibility": 0.6,
+                    "verification_status": "部分驗證"
+                },
+                "classification_json": {
+                    "category": "新聞",
+                    "type": "部分真實"
+                }
+            },
+            "timestamp": "2024-01-01T00:00:00Z"
+        }
+        
+        logger.info("Run 端點分析完成")
+        return analysis_result
+    except Exception as e:
+        logger.error(f"Run 端點錯誤: {str(e)}")
+        error_response = {
+            "status": "error",
+            "error": str(e),
+            "message": "Run endpoint failed"
         }
         raise HTTPException(status_code=500, detail=error_response)
